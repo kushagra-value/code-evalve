@@ -12,7 +12,7 @@ const API_BASE_URL =
   process.env.API_BASE_URL ||
   "https://nxthyre-server-staging-863630644667.asia-south1.run.app/";
 const JUDGE_BASE_URL =
-  process.env.JUDGE_BASE_URL || "https://34.55.79.124:2358/";
+  process.env.JUDGE_BASE_URL || "https://evalve.nxthyre.com/";
 
 class ApiService {
   private api = axios.create({
