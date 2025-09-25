@@ -1,5 +1,5 @@
 // src/pages/AssessmentPage.tsx
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 // import { Timer } from "../components/Timer";
 import { Sidebar } from "../components/Sidebar";
 import { ProblemPanel } from "../components/ProblemPanel";
@@ -15,11 +15,13 @@ import CandidateScreenHeader from "../components/Header";
 interface Props {
   assessment: Assessment;
   setAssessment?: React.Dispatch<React.SetStateAction<Assessment | null>>;
+  mediaStream?: MediaStream;
 }
 
 export const AssessmentPage: React.FC<Props> = ({
   assessment,
   setAssessment,
+  mediaStream,
 }) => {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -34,6 +36,7 @@ export const AssessmentPage: React.FC<Props> = ({
   const [lastTestAction, setLastTestAction] = useState<"run" | "submit" | null>(
     null
   );
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleTimeUp = useCallback(async () => {
     try {
@@ -198,6 +201,16 @@ export const AssessmentPage: React.FC<Props> = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleRunCode]);
 
+  useEffect(() => {
+    if (videoRef.current && mediaStream) {
+      const video = videoRef.current;
+      video.srcObject = mediaStream;
+      video.play().catch((error) => {
+        console.error("Error playing video:", error);
+      });
+    }
+  }, [mediaStream, loading]);
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -290,6 +303,17 @@ export const AssessmentPage: React.FC<Props> = ({
           </div>
         </div>
       </div>
+
+      {mediaStream && (
+        <div className="fixed bottom-2 right-2 w-40 h-24 bg-black rounded-lg overflow-hidden z-50">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ export const AssessmentWrapper: React.FC = () => {
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
 
   useEffect(() => {
     const loadAssessment = async () => {
@@ -36,6 +37,42 @@ export const AssessmentWrapper: React.FC = () => {
 
     loadAssessment();
   }, [candidateUuid]);
+
+  useEffect(() => {
+    const initMedia = async () => {
+      if (assessment && assessment.status !== "completed" && !mediaStream) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+          });
+          setMediaStream(stream);
+        } catch (err) {
+          alert(
+            "Failed to access camera and microphone. The preview won't be shown."
+          );
+          console.error("Failed to get media:", err);
+        }
+      }
+    };
+
+    initMedia();
+  }, [assessment, mediaStream]);
+
+  useEffect(() => {
+    if (assessment?.status === "completed" && mediaStream) {
+      mediaStream.getTracks().forEach((track) => track.stop());
+      setMediaStream(null);
+    }
+  }, [assessment?.status, mediaStream]);
+
+  useEffect(() => {
+    return () => {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [mediaStream]);
 
   if (loading) {
     return <LoadingScreen />;
@@ -63,8 +100,19 @@ export const AssessmentWrapper: React.FC = () => {
   if (assessment.status === "completed") {
     return <EndPage assessment={assessment} setAssessment={setAssessment} />;
   } else if (assessment.status === "not_started") {
-    return <StartPage assessment={assessment} setAssessment={setAssessment} />;
+    return (
+      <StartPage
+        assessment={assessment}
+        setAssessment={setAssessment}
+        mediaStream={mediaStream ?? undefined}
+      />
+    );
   } else {
-    return <AssessmentPage assessment={assessment} />;
+    return (
+      <AssessmentPage
+        assessment={assessment}
+        mediaStream={mediaStream ?? undefined}
+      />
+    );
   }
 };

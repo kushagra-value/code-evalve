@@ -1,5 +1,5 @@
 // src/pages/StartPage.tsx
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import CandidateScreenHeader from "../components/Header";
 import { FormScreen } from "../components/FormScreen"; // Assuming this component exists as per the provided code snippet
 import { apiService } from "../services/api";
@@ -8,12 +8,18 @@ import { Assessment } from "../types";
 interface Props {
   assessment: Assessment;
   setAssessment: React.Dispatch<React.SetStateAction<Assessment | null>>;
+  mediaStream?: MediaStream;
 }
 
-export const StartPage: React.FC<Props> = ({ assessment, setAssessment }) => {
+export const StartPage: React.FC<Props> = ({
+  assessment,
+  setAssessment,
+  mediaStream,
+}) => {
   const [email, setEmail] = useState(assessment.candidate?.email || "");
   const [name, setName] = useState(assessment.candidate?.full_name || "");
   const [loading, setLoading] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const isValidEmail = email.includes("@") && email.split("@")[1].includes(".");
 
@@ -45,6 +51,16 @@ export const StartPage: React.FC<Props> = ({ assessment, setAssessment }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (videoRef.current && mediaStream) {
+      const video = videoRef.current;
+      video.srcObject = mediaStream;
+      video.play().catch((error) => {
+        console.error("Error playing video:", error);
+      });
+    }
+  }, [mediaStream]);
 
   return (
     <div className="w-full bg-white min-h-screen">
@@ -81,6 +97,17 @@ export const StartPage: React.FC<Props> = ({ assessment, setAssessment }) => {
           />
         </div>
       </div>
+
+      {mediaStream && (
+        <div className="fixed top-2 right-2 w-40 h-24 bg-black rounded-lg overflow-hidden z-50">
+          <video
+            ref={videoRef}
+            playsInline
+            muted
+            className="w-full h-full object-cover"
+          />
+        </div>
+      )}
     </div>
   );
 };
