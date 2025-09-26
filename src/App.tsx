@@ -17,7 +17,7 @@ function App() {
             path="/assessment/:candidateUuid"
             element={<AssessmentWrapper />}
           />
-          <Route
+         {/* <Route
             path="/"
             element={
               <Navigate
@@ -26,6 +26,7 @@ function App() {
               />
             }
           />
+          */}
         </Routes>
       </Router>
     </ErrorBoundary>
