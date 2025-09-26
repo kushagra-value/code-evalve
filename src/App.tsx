@@ -4,9 +4,20 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AssessmentWrapper } from "./pages/AssessmentWrapper";
+
+const RedirectWithDebug = () => {
+  const { candidateUuid } = useParams();
+  console.log("Captured candidateUuid from URL:", candidateUuid); // This will show in console if matched
+  if (!candidateUuid) {
+    console.warn("No candidateUuid captured—check the incoming URL path.");
+    return <Navigate to="/assessment" replace />; // Fallback if no param
+  }
+  return <Navigate to={`/assessment/${candidateUuid}`} replace />;
+};
 
 function App() {
   return (
@@ -17,6 +28,12 @@ function App() {
             path="/assessment/:candidateUuid"
             element={<AssessmentWrapper />}
           />
+
+          <Route
+            path="/:candidateUuid"
+            element={<RedirectWithDebug />}
+          />
+          
          {/* <Route
             path="/"
             element={
