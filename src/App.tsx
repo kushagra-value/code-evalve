@@ -4,19 +4,19 @@ import {
   Routes,
   Route,
   Navigate,
-  useParams,
+  useSearchParams,
 } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AssessmentWrapper } from "./pages/AssessmentWrapper";
 
-const RedirectWithDebug = () => {
-  const { candidateUuid } = useParams();
-  console.log("Captured candidateUuid from URL:", candidateUuid); // This will show in console if matched
-  if (!candidateUuid) {
-    console.warn("No candidateUuid captured—check the incoming URL path.");
-    return <Navigate to="/assessment" replace />; // Fallback if no param
+const RootRedirect = () => {
+  const [searchParams] = useSearchParams();
+  const candidateUuid = searchParams.get("unique_link_id");
+  console.log("Captured unique_link_id from query:", candidateUuid); // Optional: for debugging—remove after testing
+  if (candidateUuid) {
+    return <Navigate to={`/assessment/${candidateUuid}`} replace />;
   }
-  return <Navigate to={`/assessment/${candidateUuid}`} replace />;
+  return <Navigate to="/assessment" replace />; // Fallback if no UUID (e.g., go to a landing page or error)
 };
 
 function App() {
@@ -29,10 +29,7 @@ function App() {
             element={<AssessmentWrapper />}
           />
 
-          <Route
-            path="/:candidateUuid"
-            element={<RedirectWithDebug />}
-          />
+          <Route path="/" element={<RootRedirect />} />
           
          {/* <Route
             path="/"
