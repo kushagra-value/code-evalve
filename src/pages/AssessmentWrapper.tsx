@@ -125,7 +125,7 @@ export const AssessmentWrapper: React.FC = () => {
     const handleViolation = () => {
       setSwitchCount((prev) => {
         const newCount = prev + 1;
-        if (newCount > 5) {
+        if (newCount > 3) {
           endAssessment();
         } else {
           setShowWarning(true);
@@ -241,7 +241,7 @@ export const AssessmentWrapper: React.FC = () => {
             className="bg-white p-6 rounded-lg shadow-lg text-center"
           >
             <h2 className="text-xl font-bold mb-4">Warning</h2>
-            <p>Tab switch not allowed {switchCount}/5</p>
+            <p>Tab switch not allowed {switchCount}/3</p>
             <button
               onClick={handleOkClick}
               className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
