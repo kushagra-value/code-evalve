@@ -4,9 +4,20 @@ import {
   Routes,
   Route,
   Navigate,
+  useSearchParams,
 } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AssessmentWrapper } from "./pages/AssessmentWrapper";
+
+const RootRedirect = () => {
+  const [searchParams] = useSearchParams();
+  const candidateUuid = searchParams.get("unique_link_id");
+  console.log("Captured unique_link_id from query:", candidateUuid); // Optional: for debugging—remove after testing
+  if (candidateUuid) {
+    return <Navigate to={`/assessment/${candidateUuid}`} replace />;
+  }
+  return <Navigate to="/assessment" replace />; // Fallback if no UUID (e.g., go to a landing page or error)
+};
 
 function App() {
   return (
@@ -17,7 +28,10 @@ function App() {
             path="/assessment/:candidateUuid"
             element={<AssessmentWrapper />}
           />
-          <Route
+
+          <Route path="/" element={<RootRedirect />} />
+          
+         {/* <Route
             path="/"
             element={
               <Navigate
@@ -26,6 +40,7 @@ function App() {
               />
             }
           />
+          */}
         </Routes>
       </Router>
     </ErrorBoundary>
