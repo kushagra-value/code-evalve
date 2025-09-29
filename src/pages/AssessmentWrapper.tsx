@@ -1,5 +1,5 @@
 // src/pages/AssessmentWrapper.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { apiService } from "../services/api";
 import { Assessment } from "../types";
@@ -14,6 +14,9 @@ export const AssessmentWrapper: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
+  const [switchCount, setSwitchCount] = useState(0);
+  const [showWarning, setShowWarning] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const loadAssessment = async () => {
@@ -74,6 +77,117 @@ export const AssessmentWrapper: React.FC = () => {
     };
   }, [mediaStream]);
 
+  useEffect(() => {
+    if (!loading && !error && assessment && assessment.status !== "completed") {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error("Failed to enter fullscreen:", err);
+      });
+    }
+  }, [loading, error, assessment]);
+
+  useEffect(() => {
+    if (!assessment || assessment.status === "completed") return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        handleViolation();
+      }
+    };
+
+    const handleFullscreenChange = () => {
+      if (!document.fullscreenElement) {
+        handleViolation();
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey) {
+        const key = e.key.toLowerCase();
+        if (
+          ["t", "n", "w", "r", "u"].includes(key) ||
+          (e.shiftKey && ["t", "i", "j", "c"].includes(key))
+        ) {
+          e.preventDefault();
+          e.stopPropagation();
+          handleViolation();
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          e.stopPropagation();
+          handleViolation();
+        }
+      } else if (e.key === "F12") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleViolation();
+      }
+    };
+
+    const handleViolation = () => {
+      setSwitchCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount > 5) {
+          endAssessment();
+        } else {
+          setShowWarning(true);
+        }
+        return newCount;
+      });
+    };
+
+    const endAssessment = async () => {
+      try {
+        await apiService.updateAssessmentStatus(assessment.id, "completed");
+        setAssessment({ ...assessment, status: "completed" });
+      } catch (err) {
+        console.error("Failed to end assessment:", err);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    window.addEventListener("keydown", handleKeyDown, {
+      capture: true,
+      passive: false,
+    });
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
+    };
+  }, [assessment]);
+
+  useEffect(() => {
+    if (showWarning && dialogRef.current) {
+      const button = dialogRef.current.querySelector("button");
+      if (button) {
+        button.focus();
+      }
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Tab") {
+          e.preventDefault();
+          if (button) button.focus();
+        } else if (e.key === "Escape") {
+          handleOkClick();
+        }
+      };
+
+      document.addEventListener("keydown", handleKeyDown);
+
+      return () => {
+        document.removeEventListener("keydown", handleKeyDown);
+      };
+    }
+  }, [showWarning]);
+
+  const handleOkClick = () => {
+    setShowWarning(false);
+    document.documentElement.requestFullscreen().catch((err) => {
+      console.error("Failed to re-enter fullscreen:", err);
+    });
+  };
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -97,10 +211,11 @@ export const AssessmentWrapper: React.FC = () => {
     );
   }
 
+  let content;
   if (assessment.status === "completed") {
-    return <EndPage assessment={assessment} setAssessment={setAssessment} />;
+    content = <EndPage assessment={assessment} setAssessment={setAssessment} />;
   } else if (assessment.status === "not_started") {
-    return (
+    content = (
       <StartPage
         assessment={assessment}
         setAssessment={setAssessment}
@@ -108,11 +223,34 @@ export const AssessmentWrapper: React.FC = () => {
       />
     );
   } else {
-    return (
+    content = (
       <AssessmentPage
         assessment={assessment}
         mediaStream={mediaStream ?? undefined}
       />
     );
   }
+
+  return (
+    <>
+      {content}
+      {showWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div
+            ref={dialogRef}
+            className="bg-white p-6 rounded-lg shadow-lg text-center"
+          >
+            <h2 className="text-xl font-bold mb-4">Warning</h2>
+            <p>Tab switch not allowed {switchCount}/5</p>
+            <button
+              onClick={handleOkClick}
+              className="mt-4 px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
 };
