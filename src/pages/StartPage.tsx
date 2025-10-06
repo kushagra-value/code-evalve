@@ -9,12 +9,14 @@ interface Props {
   assessment: Assessment;
   setAssessment: React.Dispatch<React.SetStateAction<Assessment | null>>;
   mediaStream?: MediaStream;
+  onStartFlash?: () => void;
 }
 
 export const StartPage: React.FC<Props> = ({
   assessment,
   setAssessment,
   mediaStream,
+  onStartFlash,
 }) => {
   const [email, setEmail] = useState(assessment.candidate?.email || "");
   const [name, setName] = useState(assessment.candidate?.full_name || "");
@@ -45,6 +47,10 @@ export const StartPage: React.FC<Props> = ({
           email: email,
         },
       });
+
+      if (onStartFlash) {
+        onStartFlash();
+      }
     } catch (err) {
       alert("Failed to start the assessment.");
     } finally {

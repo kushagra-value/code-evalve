@@ -7,6 +7,7 @@ import { LoadingScreen } from "../components/LoadingScreen";
 import { StartPage } from "./StartPage";
 import { AssessmentPage } from "./AssessmentPage";
 import { EndPage } from "./EndPage";
+import { FlashScreen } from "./FlashScreen";
 
 export const AssessmentWrapper: React.FC = () => {
   const { candidateUuid } = useParams<{ candidateUuid: string }>();
@@ -16,6 +17,7 @@ export const AssessmentWrapper: React.FC = () => {
   const [mediaStream, setMediaStream] = useState<MediaStream | null>(null);
   const [switchCount, setSwitchCount] = useState(0);
   const [showWarning, setShowWarning] = useState(false);
+  const [showFlash, setShowFlash] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -212,7 +214,32 @@ export const AssessmentWrapper: React.FC = () => {
   }
 
   let content;
-  if (assessment.status === "completed") {
+  if (showFlash) {
+    content = (
+      <FlashScreen
+        assessment={assessment}
+        setAssessment={setAssessment}
+        mediaStream={mediaStream ?? undefined}
+        onStartNow={async () => {
+          setLoading(true);
+          try {
+            await apiService.updateAssessmentStatus(
+              assessment.id,
+              "in_progress"
+            );
+            setAssessment({ ...assessment, status: "in_progress" });
+          } catch (err) {
+            setError(
+              err instanceof Error ? err.message : "Failed to update status"
+            );
+          } finally {
+            setShowFlash(false);
+            setLoading(false);
+          }
+        }}
+      />
+    );
+  } else if (assessment.status === "completed") {
     content = <EndPage assessment={assessment} setAssessment={setAssessment} />;
   } else if (assessment.status === "not_started") {
     content = (
@@ -220,6 +247,7 @@ export const AssessmentWrapper: React.FC = () => {
         assessment={assessment}
         setAssessment={setAssessment}
         mediaStream={mediaStream ?? undefined}
+        onStartFlash={() => setShowFlash(true)}
       />
     );
   } else {
