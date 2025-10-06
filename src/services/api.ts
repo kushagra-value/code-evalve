@@ -9,16 +9,16 @@ import {
 } from "../types";
 
 // Production URLs ::
-const API_BASE_URL =
-  process.env.API_BASE_URL ||
-  "https://nxthyre-server-staging-863630644667.asia-south1.run.app/";
-const JUDGE_BASE_URL =
-  process.env.JUDGE_BASE_URL || "https://evalve.nxthyre.com/";
-
-// // Development URLs ::
 // const API_BASE_URL =
+//   process.env.API_BASE_URL ||
 //   "https://nxthyre-server-staging-863630644667.asia-south1.run.app/";
-// const JUDGE_BASE_URL = "http://34.55.79.124:2358";
+// const JUDGE_BASE_URL =
+//   process.env.JUDGE_BASE_URL || "https://evalve.nxthyre.com/";
+
+// Development URLs ::
+const API_BASE_URL =
+  "https://nxthyre-server-staging-863630644667.asia-south1.run.app/";
+const JUDGE_BASE_URL = "http://34.55.79.124:2358";
 
 class ApiService {
   private api = axios.create({

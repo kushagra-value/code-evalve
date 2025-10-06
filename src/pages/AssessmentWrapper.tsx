@@ -237,6 +237,7 @@ export const AssessmentWrapper: React.FC = () => {
             setLoading(false);
           }
         }}
+        setMediaStream={setMediaStream}
       />
     );
   } else if (assessment.status === "completed") {

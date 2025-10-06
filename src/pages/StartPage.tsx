@@ -37,10 +37,8 @@ export const StartPage: React.FC<Props> = ({
       // Assuming candidate update is not implemented in apiService; skip or add if needed
       // await apiService.updateCandidate(assessment.candidate.id, { full_name: name, email: email });
 
-      await apiService.updateAssessmentStatus(assessment.id, "in_progress");
       setAssessment({
         ...assessment,
-        status: "in_progress",
         candidate: {
           ...assessment.candidate,
           full_name: name,
@@ -104,7 +102,7 @@ export const StartPage: React.FC<Props> = ({
         </div>
       </div>
 
-      {mediaStream && (
+      {/* {mediaStream && (
         <div className="fixed top-2 right-2 w-40 h-24 bg-black rounded-lg overflow-hidden z-50">
           <video
             ref={videoRef}
@@ -113,7 +111,7 @@ export const StartPage: React.FC<Props> = ({
             className="w-full h-full object-cover"
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 };
